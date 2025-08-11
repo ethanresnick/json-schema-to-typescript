@@ -136,6 +136,13 @@ export function traverse(
       traverseObjectKeys(schema.dependencies as LinkedJSONSchema, callback, processed)
     }
   }
+  if (schema.propertyDependencies) {
+    Object.values(schema.propertyDependencies).forEach(valueMap => {
+      Object.values(valueMap).forEach(schemaForValue => {
+        traverse(schemaForValue, callback, processed)
+      })
+    })
+  }
   if (schema.definitions) {
     traverseObjectKeys(schema.definitions, callback, processed)
   }

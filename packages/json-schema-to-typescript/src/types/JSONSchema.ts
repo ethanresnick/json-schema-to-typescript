@@ -21,11 +21,16 @@ export type SchemaType =
   | 'UNNAMED_ENUM'
   | 'UNTYPED_ARRAY'
   | 'CUSTOM_TYPE'
-
+  | 'CONDITIONAL'
+ 
 export type JSONSchemaTypeName = JSONSchema4TypeName
 export type JSONSchemaType = JSONSchema4Type
 
 export interface JSONSchema extends JSONSchema4 {
+  /**
+   * JSON Schema draft propertyDependencies
+   */
+  propertyDependencies?: Record<string, Record<string, JSONSchema>>
   /**
    * schema extension to support numeric enums
    */
@@ -68,6 +73,7 @@ export interface LinkedJSONSchema extends JSONSchema {
   anyOf?: LinkedJSONSchema[]
   oneOf?: LinkedJSONSchema[]
   not?: LinkedJSONSchema
+  propertyDependencies?: Record<string, Record<string, LinkedJSONSchema>>
 }
 
 export const Types = Symbol('Types')
@@ -99,6 +105,7 @@ export interface NormalizedJSONSchema extends Omit<LinkedJSONSchema, 'definition
   dependencies?: {
     [k: string]: NormalizedJSONSchema | string[]
   }
+  propertyDependencies?: Record<string, Record<string, NormalizedJSONSchema>>
   allOf?: NormalizedJSONSchema[]
   anyOf?: NormalizedJSONSchema[]
   oneOf?: NormalizedJSONSchema[]

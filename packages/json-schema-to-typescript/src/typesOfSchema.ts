@@ -46,6 +46,47 @@ const matchers: Record<SchemaType, (schema: JSONSchema) => boolean> = {
   ANY_OF(schema) {
     return 'anyOf' in schema
   },
+  CONDITIONAL(schema) {
+    // Only detect propertyDependencies in cases where we can safely represent them
+    if (!schema.propertyDependencies) {
+      return false
+    }
+    
+    // 1. The outer schema must be an object schema
+    if (schema.type !== 'object') {
+      return false
+    }
+    
+    // 2. Only ONE discriminator key is supported
+    const discriminatorKeys = Object.keys(schema.propertyDependencies)
+    if (discriminatorKeys.length !== 1) {
+      return false
+    }
+    
+    // 3. The discriminator key must be REQUIRED by the outer schema
+    if (!schema.required || !Array.isArray(schema.required) || !discriminatorKeys.every(key => (schema.required as string[]).includes(key))) {
+      return false
+    }
+    
+    // 4. The discriminator must have a string enum that exactly matches the propertyDependencies values
+    if (!schema.properties) {
+      return false
+    }
+    
+    return discriminatorKeys.every(discriminatorKey => {
+      const discriminatorProperty = schema.properties![discriminatorKey]
+      if (!discriminatorProperty || discriminatorProperty.type !== 'string' || !discriminatorProperty.enum) {
+        return false
+      }
+      
+      const enumValues = discriminatorProperty.enum as string[]
+      const propertyDependencyValues = Object.keys(schema.propertyDependencies![discriminatorKey])
+      
+      // The enum must contain exactly the same values as propertyDependencies
+      return enumValues.length === propertyDependencyValues.length &&
+             enumValues.every(value => propertyDependencyValues.includes(value))
+    })
+  },
   BOOLEAN(schema) {
     if ('enum' in schema) {
       return false

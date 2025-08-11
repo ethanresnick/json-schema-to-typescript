@@ -5,7 +5,7 @@ import { writeFileSync, existsSync, lstatSync, readdirSync, mkdirSync, readFileS
 import { glob } from 'glob'
 import isGlob from 'is-glob'
 import { join, resolve, dirname } from 'path'
-import { DEFAULT_OPTIONS, compileJsonFile, Options, compileYamlFile } from '@fumari/json-schema-to-typescript'
+import { DEFAULT_OPTIONS, compileJsonFile, Options, compileYamlFile } from '@ethanresnick/json-schema-to-typescript'
 import { pathTransform, error, justName } from './utils'
 import pkg from '../package.json'
 

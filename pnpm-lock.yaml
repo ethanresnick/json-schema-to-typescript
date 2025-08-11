@@ -73,7 +73,7 @@ importers:
 
   packages/json2ts:
     dependencies:
-      '@fumari/json-schema-to-typescript':
+      '@ethanresnick/json-schema-to-typescript':
         specifier: workspace:*
         version: link:../json-schema-to-typescript
       glob:

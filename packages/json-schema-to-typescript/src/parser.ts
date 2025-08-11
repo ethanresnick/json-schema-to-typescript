@@ -201,6 +201,22 @@ function parseNonLiteral(
         standaloneName: standaloneName(schema, keyNameFromDefinition, usedNames, options),
         type: 'CUSTOM_TYPE'
       }
+    case 'CONDITIONAL':
+      return {
+        comment: schema.description,
+        deprecated: schema.deprecated,
+        keyName,
+        standaloneName: standaloneName(schema, keyNameFromDefinition, usedNames, options),
+        type: 'CONDITIONAL',
+        discriminators: Object.entries(schema.propertyDependencies!).map(([propertyName, valueMap]) => ({
+          property: propertyName,
+          cases: Object.entries(valueMap).map(([value, dependentSchema]) => ({
+            value,
+            schema: parse(dependentSchema, options, undefined, processed, usedNames)
+          }))
+        })),
+        baseSchema: newInterface(schema as SchemaSchema, options, processed, usedNames, keyName, keyNameFromDefinition)
+      }
     case 'NAMED_ENUM':
       return {
         comment: schema.description,

@@ -11,7 +11,8 @@ import {
   TIntersection,
   TNamedInterface,
   TUnion,
-  T_UNKNOWN
+  T_UNKNOWN,
+  TConditional
 } from './types/AST'
 import { log, toSafeString, omit } from './utils'
 
@@ -177,7 +178,7 @@ function generateRawType(ast: AST, options: Options): string {
     case 'BOOLEAN':
       return 'boolean'
     case 'INTERFACE':
-      return generateInterface(ast, options)
+      return generateObjectType(ast, options)
     case 'INTERSECTION':
       return generateSetOperation(ast, options)
     case 'LITERAL':
@@ -278,6 +279,8 @@ function generateRawType(ast: AST, options: Options): string {
       return 'unknown'
     case 'CUSTOM_TYPE':
       return ast.params
+    case 'CONDITIONAL':
+      return generateConditionalType(ast, options)
   }
 }
 
@@ -290,7 +293,7 @@ function generateSetOperation(ast: TIntersection | TUnion, options: Options): st
   return members.length === 1 ? members[0] : '(' + members.join(' ' + separator + ' ') + ')'
 }
 
-function generateInterface(ast: TInterface, options: Options): string {
+function generateObjectType(ast: TInterface, options: Options): string {
   return (
     `{` +
     '\n' +
@@ -312,6 +315,23 @@ function generateInterface(ast: TInterface, options: Options): string {
     '\n' +
     '}'
   )
+}
+
+function generateConditionalType(ast: TConditional, options: Options): string {
+  // Generate a union of discriminated types
+  const unionTypes: string[] = []
+  
+  ast.discriminators.forEach(discriminator => {
+    discriminator.cases.forEach(c => {
+      const discriminatorType = `{ ${discriminator.property}: "${c.value}" }`
+      const dependentType = generateType(c.schema, options)
+      
+      // Each union member should include the discriminator and dependent schema
+      unionTypes.push(`(${discriminatorType} & ${dependentType})`)
+    })
+  })
+  
+  return `(${unionTypes.join(' | ')})`
 }
 
 function generateComment(comment?: string, deprecated?: boolean): string {
@@ -346,7 +366,7 @@ function generateStandaloneInterface(ast: TNamedInterface, options: Options): st
     (ast.superTypes.length > 0
       ? `extends ${ast.superTypes.map(superType => toSafeString(superType.standaloneName)).join(', ')} `
       : '') +
-    generateInterface(ast, options)
+    generateObjectType(ast, options)
   )
 }
 

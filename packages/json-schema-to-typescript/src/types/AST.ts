@@ -21,6 +21,7 @@ export type AST =
   | TUnion
   | TUnknown
   | TCustomType
+  | TConditional
 
 export interface AbstractAST {
   comment?: string
@@ -148,6 +149,18 @@ export interface TUnknown extends AbstractAST {
 export interface TCustomType extends AbstractAST {
   type: 'CUSTOM_TYPE'
   params: string
+}
+
+export interface TConditional extends AbstractAST {
+  type: 'CONDITIONAL'
+  discriminators: Array<{
+    property: string
+    cases: Array<{
+      value: string
+      schema: AST
+    }>
+  }>
+  baseSchema: TInterface
 }
 
 ////////////////////////////////////////////     literals
